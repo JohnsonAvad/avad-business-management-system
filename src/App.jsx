@@ -5,6 +5,12 @@ import { DataProvider } from './context/DataContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Customers from './pages/Customers';
+import Sales from './pages/Sales';
+import NewSale from './pages/NewSale';
+import Inventory from './pages/Inventory';
+import Expenses from './pages/Expenses';
+import Suppliers from './pages/Suppliers';
 import Placeholder from './pages/Placeholder';
 
 function Protected() {
@@ -14,11 +20,7 @@ function Protected() {
 }
 
 const coming = {
-  sales: ['Sales', 'sales', 'Phase 1 – the next screen we will build together.'],
-  customers: ['Customers', 'customers', 'Phase 1 – coming right after Sales.'],
-  inventory: ['Inventory', 'inventory', 'Phase 1 – products and stock.'],
-  purchases: ['Purchases', 'purchases', 'Phase 2 – suppliers and buying.'],
-  expenses: ['Expenses', 'expenses', 'Phase 1 – record money out.'],
+  purchases: ['Purchases', 'purchases', 'Phase 2 – the next screen we will build.'],
   invoices: ['Invoices & Receipts', 'invoices', 'Phase 2 – billing and payments.'],
   accounting: ['Accounting', 'accounting', 'Phase 3 – ledgers and reports.'],
   banks: ['Banks', 'banks', 'Phase 3 – bank and cash accounts.'],
@@ -37,6 +39,12 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route element={<Protected />}>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/sales" element={<Sales />} />
+              <Route path="/sales/new" element={<NewSale />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/expenses" element={<Expenses />} />
+              <Route path="/suppliers" element={<Suppliers />} />
               {Object.entries(coming).map(([key, [title, icon, note]]) => (
                 <Route key={key} path={'/' + key} element={<Placeholder title={title} icon={icon} note={note} />} />
               ))}

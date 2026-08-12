@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { cleanPhoneInput } from '../utils/helpers';
 
 export default function Login() {
   const { hasOwner, login, setupOwner } = useAuth();
@@ -15,7 +16,7 @@ export default function Login() {
     setError('');
     if (mode === 'setup') {
       if (!form.businessName.trim()) return setError('Please enter your business name.');
-      if (form.phone.replace(/\D/g, '').length < 9) return setError('Please enter a valid phone number.');
+      if (form.phone.replace(/\D/g, '').length < 10) return setError('Please enter a valid phone number (10 digits).');
       if (!/^\d{4}$/.test(form.pin)) return setError('PIN must be exactly 4 digits.');
       if (form.pin !== form.pin2) return setError('PINs do not match.');
       setupOwner({ businessName: form.businessName.trim(), phone: form.phone.trim(), pin: form.pin });
@@ -43,7 +44,7 @@ export default function Login() {
         )}
 
         <label className="label">Phone number</label>
-        <input className="input" inputMode="numeric" value={form.phone} onChange={set('phone')} placeholder="e.g. 0772 000 000" />
+        <input className="input" inputMode="numeric" value={form.phone} onChange={e => setForm({ ...form, phone: cleanPhoneInput(e.target.value) })} placeholder="e.g. 0772 000 000" />
 
         <label className="label">PIN (4 digits)</label>
         <input className="input" type="password" inputMode="numeric" maxLength={4} value={form.pin} onChange={set('pin')} placeholder="••••" />

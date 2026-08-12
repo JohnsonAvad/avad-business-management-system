@@ -9,6 +9,7 @@ const menu = [
   { to: '/customers', icon: 'customers', label: 'Customers' },
   { to: '/inventory', icon: 'inventory', label: 'Inventory' },
   { to: '/purchases', icon: 'purchases', label: 'Purchases' },
+  { to: '/suppliers', icon: 'suppliers', label: 'Suppliers' },
   { to: '/expenses', icon: 'expenses', label: 'Expenses' },
   { to: '/invoices', icon: 'invoices', label: 'Invoices & Receipts' },
   { to: '/accounting', icon: 'accounting', label: 'Accounting' },

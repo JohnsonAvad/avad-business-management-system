@@ -14,7 +14,7 @@ export default function Dashboard() {
   const todaySales = todaySalesList.reduce((a, s) => a + s.amount, 0);
   const moneyOut = expenses.filter(x => x.date === t).reduce((a, x) => a + x.amount, 0);
   const owed = customers.reduce((a, c) => a + (c.balance || 0), 0);
-  const low = products.filter(p => p.stock <= p.minStock);
+  const low = products.filter(p => p.active !== false && p.stock <= p.minStock);
   const profit = todaySales - moneyOut;
 
   const days = [...Array(7)].map((_, i) => {
