@@ -61,7 +61,7 @@ export default function Login() {
         <button className="btn btn-green btn-lg" style={{ width: '100%', marginTop: 16 }} type="submit">
           {mode === 'setup' ? 'Create my account' : 'Sign in'}
         </button>
-        <div className="hint">Green. Blue. Simple. — AVAD Systems</div>
+        <div className="hint">Think Different!!! — AVAD Systems</div>
       </form>
     </div>
   );

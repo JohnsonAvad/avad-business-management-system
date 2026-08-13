@@ -11,6 +11,8 @@ import NewSale from './pages/NewSale';
 import Inventory from './pages/Inventory';
 import Expenses from './pages/Expenses';
 import Suppliers from './pages/Suppliers';
+import Purchases from './pages/Purchases';
+import NewPurchase from './pages/NewPurchase';
 import Placeholder from './pages/Placeholder';
 
 function Protected() {
@@ -20,7 +22,6 @@ function Protected() {
 }
 
 const coming = {
-  purchases: ['Purchases', 'purchases', 'Phase 2 – the next screen we will build.'],
   invoices: ['Invoices & Receipts', 'invoices', 'Phase 2 – billing and payments.'],
   accounting: ['Accounting', 'accounting', 'Phase 3 – ledgers and reports.'],
   banks: ['Banks', 'banks', 'Phase 3 – bank and cash accounts.'],
@@ -45,6 +46,8 @@ export default function App() {
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/expenses" element={<Expenses />} />
               <Route path="/suppliers" element={<Suppliers />} />
+              <Route path="/purchases" element={<Purchases />} />
+              <Route path="/purchases/new" element={<NewPurchase />} />
               {Object.entries(coming).map(([key, [title, icon, note]]) => (
                 <Route key={key} path={'/' + key} element={<Placeholder title={title} icon={icon} note={note} />} />
               ))}

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -24,11 +25,13 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const { currency, setCurrency } = useCurrency();
   const nav = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
   const business = JSON.parse(localStorage.getItem('avad_business') || '{}');
 
   return (
     <div className="shell">
-      <aside className="sidebar">
+      {menuOpen && <div className="side-overlay" onClick={() => setMenuOpen(false)} />}
+      <aside className={'sidebar' + (menuOpen ? ' open' : '')}>
         <div className="brand">
           <div className="brand-logo">A</div>
           <div>
@@ -39,6 +42,7 @@ export default function Layout() {
         <nav>
           {menu.map(m => (
             <NavLink key={m.to} to={m.to} end={m.to === '/'}
+              onClick={() => setMenuOpen(false)}
               className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
               <Icon name={m.icon} size={19} /> {m.label}
             </NavLink>
@@ -47,7 +51,12 @@ export default function Layout() {
       </aside>
       <div className="main">
         <header className="topbar">
-          <div className="topbar-title">Welcome, {user?.name}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button className="icon-btn menu-btn" title="Menu" onClick={() => setMenuOpen(true)}>
+              <Icon name="menu" size={20} />
+            </button>
+            <div className="topbar-title">Welcome, {user?.name}</div>
+          </div>
           <div className="topbar-right">
             <div className="search"><Icon name="search" size={16} /><input placeholder="Search…" /></div>
             <select className="currency-select" value={currency} onChange={e => setCurrency(e.target.value)} title="Currency">
