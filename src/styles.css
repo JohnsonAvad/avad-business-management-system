@@ -168,3 +168,15 @@ h1,h2,h3{margin:0} a{text-decoration:none;color:inherit}
 .cost-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light)}
 .qty-input{width:56px;padding:6px 4px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-weight:800;text-align:center;outline:none}
 .qty-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light)}
+/* --- Printing & sharing documents --- */
+.print-overlay{position:fixed;inset:0;background:rgba(17,24,39,.6);z-index:120;display:flex;align-items:center;justify-content:center;padding:16px}
+.print-card{background:#fff;border-radius:12px;max-width:430px;width:100%;padding:20px;max-height:90vh;overflow-y:auto}
+.print-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.print-actions .btn{flex:1;min-width:90px}
+@media print{
+  body *{visibility:hidden}
+  .print-area,.print-area *{visibility:visible}
+  .print-overlay{position:absolute;inset:0;background:#fff;padding:0}
+  .print-card{box-shadow:none;max-width:100%;padding:0;max-height:none;overflow:visible}
+  .print-actions{display:none}
+}

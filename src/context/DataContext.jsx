@@ -192,8 +192,9 @@ export function DataProvider({ children }) {
       const customers = prev.customers.map(c =>
         c.id === customerId ? { ...c, balance: (c.balance || 0) + owed } : c
       );
-      const sale = {
+        const sale = {
         id: Date.now(),
+        number: 'INV-' + String((prev.sales || []).length + 1).padStart(4, '0'),
         date: today(),
         customer: customerName,
         amount: total,

@@ -13,6 +13,7 @@ import Expenses from './pages/Expenses';
 import Suppliers from './pages/Suppliers';
 import Purchases from './pages/Purchases';
 import NewPurchase from './pages/NewPurchase';
+import InvoicesReceipts from './pages/InvoicesReceipts';
 import Placeholder from './pages/Placeholder';
 
 function Protected() {
@@ -22,7 +23,6 @@ function Protected() {
 }
 
 const coming = {
-  invoices: ['Invoices & Receipts', 'invoices', 'Phase 2 – billing and payments.'],
   accounting: ['Accounting', 'accounting', 'Phase 3 – ledgers and reports.'],
   banks: ['Banks', 'banks', 'Phase 3 – bank and cash accounts.'],
   hr: ['HR & Payroll', 'hr', 'Phase 5 – employees and salaries.'],
@@ -48,6 +48,7 @@ export default function App() {
               <Route path="/suppliers" element={<Suppliers />} />
               <Route path="/purchases" element={<Purchases />} />
               <Route path="/purchases/new" element={<NewPurchase />} />
+              <Route path="/invoices" element={<InvoicesReceipts />} />
               {Object.entries(coming).map(([key, [title, icon, note]]) => (
                 <Route key={key} path={'/' + key} element={<Placeholder title={title} icon={icon} note={note} />} />
               ))}
