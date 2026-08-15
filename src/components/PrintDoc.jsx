@@ -24,7 +24,10 @@ export default function PrintDoc({ doc, onClose }) {
     <div className="print-overlay" onClick={onClose}>
       <div className="print-card" onClick={e => e.stopPropagation()}>
         <div className="print-area">
-          <div style={{ textAlign: 'center', marginBottom: 12 }}>
+            <div style={{ textAlign: 'center', marginBottom: 12 }}>
+            {doc.logo && (
+              <img src={doc.logo} alt="logo" style={{ width: 56, height: 56, objectFit: 'contain', margin: '0 auto 6px', display: 'block' }} />
+            )}
             <div style={{ fontWeight: 800, fontSize: 18 }}>{doc.businessName || 'AVAD Systems'}</div>
             <div style={{ color: 'var(--muted)', fontSize: 12 }}>{doc.type} • {doc.number}</div>
           </div>
@@ -46,7 +49,7 @@ export default function PrintDoc({ doc, onClose }) {
           )}
           {(!doc.items || doc.items.length === 0) && (
             <div style={{ color: 'var(--muted)', fontSize: 12, margin: '8px 0' }}>
-              Item details were not recorded for this sale.
+              {doc.type === 'RECEIPT' ? 'Payment received on account.' : 'Item details were not recorded for this sale.'}
             </div>
           )}
           <div className="total-line big"><span>Total</span><span className="amt">{format(doc.total || 0)}</span></div>

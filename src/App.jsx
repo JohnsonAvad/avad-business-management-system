@@ -14,6 +14,7 @@ import Suppliers from './pages/Suppliers';
 import Purchases from './pages/Purchases';
 import NewPurchase from './pages/NewPurchase';
 import InvoicesReceipts from './pages/InvoicesReceipts';
+import Settings from './pages/Settings';
 import Placeholder from './pages/Placeholder';
 
 function Protected() {
@@ -28,7 +29,7 @@ const coming = {
   hr: ['HR & Payroll', 'hr', 'Phase 5 – employees and salaries.'],
   marketing: ['Marketing', 'marketing', 'Phase 4 – campaigns and content.'],
   reports: ['Reports', 'reports', 'Phase 1 – printable business reports.'],
-  settings: ['Settings', 'settings', 'Phase 1 – business profile, users and currency.'],
+  
 };
 
 export default function App() {
@@ -49,6 +50,7 @@ export default function App() {
               <Route path="/purchases" element={<Purchases />} />
               <Route path="/purchases/new" element={<NewPurchase />} />
               <Route path="/invoices" element={<InvoicesReceipts />} />
+              <Route path="/settings" element={<Settings />} />
               {Object.entries(coming).map(([key, [title, icon, note]]) => (
                 <Route key={key} path={'/' + key} element={<Placeholder title={title} icon={icon} note={note} />} />
               ))}

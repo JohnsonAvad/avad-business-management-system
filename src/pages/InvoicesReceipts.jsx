@@ -19,6 +19,7 @@ export default function InvoicesReceipts() {
       type: 'INVOICE', number: invNo(s), date: s.date, customer: s.customer,
       customerPhone: phoneOf(s.customer), items: s.items || [],
       total: s.amount, paid: paidOf(s), method: s.method || 'Cash',
+      businessName: business.name, logo: business.logo,
       businessName: business.name,
     });
   }
@@ -26,8 +27,9 @@ export default function InvoicesReceipts() {
   function openReceipt(r) {
     setDoc({
       type: 'RECEIPT', number: r.number, date: r.date, customer: r.customer,
-      customerPhone: phoneOf(r.customer), items: [],
+      customerPhone: phoneOf(r.customer), items: r.items || [],
       total: r.amount, paid: r.amount, method: r.method,
+      businessName: business.name, logo: business.logo,
       businessName: business.name,
     });
   }

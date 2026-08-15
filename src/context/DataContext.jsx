@@ -205,13 +205,14 @@ export function DataProvider({ children }) {
       };
       let receipts = prev.receipts || [];
       if (paid > 0) {
-        receipts = [...receipts, {
+               receipts = [...receipts, {
           id: Date.now() + 1,
           number: 'RCP-' + String(receipts.length + 1).padStart(4, '0'),
           date: sale.date,
           customer: customerName,
           amount: paid,
           method,
+          items,
         }];
       }
       return { ...prev, products, customers, sales: [...prev.sales, sale], receipts };
