@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+          import { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
 const read = (k, f) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? f; } catch { return f; } };
@@ -6,10 +6,11 @@ const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => read('avad_session', null));
+  const [usersVersion, setUsersVersion] = useState(0);
   const hasOwner = read('avad_users', []).length > 0;
 
   function setupOwner({ businessName, phone, pin }) {
-    write('avad_users', [{ id: 1, name: 'Owner', phone, pin, role: 'Owner' }]);
+    write('avad_users', [{ id: 1, name: 'Owner', phone, pin, role: 'Owner', active: true }]);
     write('avad_business', { name: businessName, currency: 'UGX' });
     const u = { name: 'Owner', phone, role: 'Owner' };
     write('avad_session', u);
@@ -17,7 +18,7 @@ export function AuthProvider({ children }) {
   }
 
   function login(phone, pin) {
-    const u = read('avad_users', []).find(x => x.phone === phone && x.pin === pin);
+    const u = read('avad_users', []).find(x => x.phone === phone && x.pin === pin && x.active !== false);
     if (!u) return false;
     const s = { name: u.name, phone: u.phone, role: u.role };
     write('avad_session', s);
@@ -27,6 +28,26 @@ export function AuthProvider({ children }) {
 
   function logout() { localStorage.removeItem('avad_session'); setUser(null); }
 
-  return <AuthContext.Provider value={{ user, hasOwner, setupOwner, login, logout }}>{children}</AuthContext.Provider>;
+  function addUser({ name, phone, pin, role }) {
+    const users = read('avad_users', []);
+    if (users.some(x => x.phone === phone)) return 'A user with this phone already exists.';
+    users.push({ id: Date.now(), name, phone, pin, role, active: true });
+    write('avad_users', users);
+    setUsersVersion(v => v + 1);
+    return '';
+  }
+
+  function setUserActive(phone, active) {
+    write('avad_users', read('avad_users', []).map(u => u.phone === phone ? { ...u, active } : u));
+    setUsersVersion(v => v + 1);
+  }
+
+  const getUsers = () => read('avad_users', []);
+
+  return (
+    <AuthContext.Provider value={{ user, hasOwner, usersVersion, setupOwner, login, logout, addUser, setUserActive, getUsers }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 export const useAuth = () => useContext(AuthContext);

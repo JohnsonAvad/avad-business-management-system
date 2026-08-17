@@ -15,6 +15,7 @@ export default function NewSale() {
   const [prodSearch, setProdSearch] = useState('');
   const [method, setMethod] = useState('Cash');
   const [paidInput, setPaidInput] = useState('');
+  const [dueDays, setDueDays] = useState('7');
   const [error, setError] = useState('');
   const [done, setDone] = useState(null);
 
@@ -90,7 +91,9 @@ export default function NewSale() {
     if (isNaN(paidNum) || paidNum < 0) return setError('Please enter a valid amount.');
     if (isWalkin && paidReal < total) return setError('Walk-in customers must pay now. Please enter the full amount.');
     const receiptNo = paidReal > 0 ? 'RCP-' + String((receipts ? receipts.length : 0) + 1).padStart(4, '0') : null;
+    const dd = new Date(); dd.setDate(dd.getDate() + Number(dueDays || 0));
     addSale({
+      dueDate: dd.toISOString().slice(0, 10),
       customerId: isWalkin ? null : customerId,
       customerName: isWalkin ? 'Walk-in' : customer.name,
       items: cart.map(i => ({ ...i, qty: qtyOf(i) })),
@@ -241,6 +244,16 @@ export default function NewSale() {
             {!isWalkin && (
               <button className={'pay-btn' + (method === 'Credit' ? ' selected' : '')} onClick={() => setMethod('Credit')}>Credit (Pay Later)</button>
             )}
+          </div>
+
+                    <div className="form-group">
+            <label>Payment due in</label>
+            <select className="input" value={dueDays} onChange={e => setDueDays(e.target.value)}>
+              <option value="0">Today</option>
+              <option value="7">7 days</option>
+              <option value="14">14 days</option>
+              <option value="30">30 days</option>
+            </select>
           </div>
 
           {method !== 'Credit' && (
