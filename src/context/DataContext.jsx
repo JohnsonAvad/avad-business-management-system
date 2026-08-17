@@ -5,6 +5,7 @@ const KEY = 'avad_data_v2';
 const read = (k, f) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? f; } catch { return f; } };
 const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };
 const today = () => new Date().toISOString().slice(0, 10);
+const methodAcc = m => (m === 'Cash' ? '1000' : m === 'Mobile Money' ? '1010' : '1020');
 
 function seed() {
   return {
@@ -44,6 +45,29 @@ function seed() {
       { id: 3, date: daysAgo(0), category: 'Repairs', amount: 40000, note: 'Shelf repair', method: 'Cash' },
     ],
     receipts: [], supplierPayments: [], movements: [], quotations: [], deliveryNotes: [],
+    accounts: [
+      { code: '1000', name: 'Cash', type: 'Asset', bank: true },
+      { code: '1010', name: 'Mobile Money', type: 'Asset', bank: true },
+      { code: '1020', name: 'Bank Account', type: 'Asset', bank: true },
+      { code: '1100', name: 'Customer Debtors (Receivable)', type: 'Asset' },
+      { code: '1200', name: 'Inventory', type: 'Asset' },
+      { code: '2000', name: 'Supplier Creditors (Payable)', type: 'Liability' },
+      { code: '3000', name: "Owner's Capital", type: 'Equity' },
+      { code: '4000', name: 'Sales Revenue', type: 'Income' },
+      { code: '6000', name: 'Operating Expenses', type: 'Expense' },
+    ],
+    journal: [],
+    deals: [
+      { id: 1, customer: 'David Mugisha', stage: 'Contacted', value: 400000, note: 'Wants monthly rice supply', date: daysAgo(3), updatedAt: daysAgo(1) },
+      { id: 2, customer: 'Amina Hassan', stage: 'Quotation Sent', value: 250000, note: 'Quoted for cooking oil', date: daysAgo(2), updatedAt: daysAgo(0) },
+    ],
+    followups: [
+      { id: 1, customer: 'Sarah Nakato', dueDate: daysAgo(1), note: 'Call about outstanding balance', done: false },
+      { id: 2, customer: 'Peter Okello', dueDate: daysAgo(-2), note: 'Thank-you message after purchase', done: false },
+    ],
+    feedbacks: [
+      { id: 1, customer: 'Peter Okello', rating: 5, comment: 'Fast service!', date: daysAgo(4) },
+    ],
   };
 }
 
@@ -66,6 +90,7 @@ export function DataProvider({ children }) {
         ...prev,
         suppliers: prev.suppliers.map(s => s.id === supplierId ? { ...s, balance: Math.max((s.balance || 0) - amount, 0) } : s),
         supplierPayments: [...(prev.supplierPayments || []), { id: Date.now(), number: 'PAY-' + String((prev.supplierPayments || []).length + 1).padStart(4, '0'), date: today(), supplier: sup.name, amount, method }],
+        journal: [...(prev.journal || []), { id: Date.now() + 1, date: today(), ref: 'PAY', memo: 'Payment to ' + sup.name, lines: [{ account: '2000', debit: amount, credit: 0 }, { account: methodAcc(method), debit: 0, credit: amount }] }],
       };
     });
   }
@@ -93,15 +118,25 @@ export function DataProvider({ children }) {
       const newMoves = items.map((line, idx) => ({ id: Date.now() + 2 + idx, date: today(), product: line.name, change: line.qty, reason: 'Purchase from ' + supplierName }));
       let supplierPayments = prev.supplierPayments || [];
       if (paid > 0) supplierPayments = [...supplierPayments, { id: Date.now() + 1, number: 'PAY-' + String(supplierPayments.length + 1).padStart(4, '0'), date: today(), supplier: supplierName, amount: paid, method }];
+      const lines = [{ account: '1200', debit: total, credit: 0 }];
+      if (paid > 0) lines.push({ account: methodAcc(method), debit: 0, credit: paid });
+      if (owed > 0) lines.push({ account: '2000', debit: 0, credit: owed });
       return {
         ...prev, products, supplierPayments,
         suppliers: prev.suppliers.map(s => s.id === supplierId ? { ...s, balance: (s.balance || 0) + owed } : s),
         purchases: [...(prev.purchases || []), { id: Date.now(), date: today(), supplier: supplierName, amount: total, paid, method, status: paid >= total ? 'Paid' : paid > 0 ? 'Partial' : 'Unpaid', items }],
         movements: [...(prev.movements || []), ...newMoves],
+        journal: [...(prev.journal || []), { id: Date.now() + 3, date: today(), ref: 'PUR', memo: 'Purchase from ' + supplierName, lines }],
       };
     });
   }
-  function addExpense(e) { setData(prev => ({ ...prev, expenses: [...prev.expenses, { id: Date.now(), date: today(), category: e.category, amount: Number(e.amount), note: e.note, method: e.method }] })); }
+  function addExpense(e) {
+    setData(prev => ({
+      ...prev,
+      expenses: [...prev.expenses, { id: Date.now(), date: today(), category: e.category, amount: Number(e.amount), note: e.note, method: e.method }],
+      journal: [...(prev.journal || []), { id: Date.now() + 1, date: today(), ref: 'EXP', memo: e.category + ' – ' + e.note, lines: [{ account: '6000', debit: Number(e.amount), credit: 0 }, { account: methodAcc(e.method), debit: 0, credit: Number(e.amount) }] }],
+    }));
+  }
   function addSale({ customerId, customerName, items, total, paid, method, dueDate }) {
     setData(prev => {
       const products = prev.products.map(p => { const line = items.find(i => i.productId === p.id); return line ? { ...p, stock: p.stock - line.qty } : p; });
@@ -109,14 +144,23 @@ export function DataProvider({ children }) {
       const sale = { id: Date.now(), number: 'INV-' + String((prev.sales || []).length + 1).padStart(4, '0'), date: today(), dueDate, customer: customerName, amount: total, paid, method, status: paid >= total ? 'Paid' : paid > 0 ? 'Partial' : 'Credit', items };
       let receipts = prev.receipts || [];
       if (paid > 0) receipts = [...receipts, { id: Date.now() + 1, number: 'RCP-' + String(receipts.length + 1).padStart(4, '0'), date: sale.date, customer: customerName, amount: paid, method, items }];
-      return { ...prev, products, receipts, customers: prev.customers.map(c => c.id === customerId ? { ...c, balance: (c.balance || 0) + owed } : c), sales: [...prev.sales, sale] };
+      const lines = [];
+      if (paid > 0) lines.push({ account: methodAcc(method), debit: paid, credit: 0 });
+      if (owed > 0) lines.push({ account: '1100', debit: owed, credit: 0 });
+      lines.push({ account: '4000', debit: 0, credit: total });
+      return { ...prev, products, receipts, customers: prev.customers.map(c => c.id === customerId ? { ...c, balance: (c.balance || 0) + owed } : c), sales: [...prev.sales, sale], journal: [...(prev.journal || []), { id: Date.now() + 2, date: today(), ref: sale.number, memo: 'Sale to ' + customerName, lines }] };
     });
   }
   function addPayment({ customerId, amount, method }) {
     setData(prev => {
       const customer = prev.customers.find(c => c.id === customerId);
       if (!customer) return prev;
-      return { ...prev, customers: prev.customers.map(c => c.id === customerId ? { ...c, balance: Math.max((c.balance || 0) - amount, 0) } : c), receipts: [...(prev.receipts || []), { id: Date.now(), number: 'RCP-' + String((prev.receipts || []).length + 1).padStart(4, '0'), date: today(), customer: customer.name, amount, method }] };
+      return {
+        ...prev,
+        customers: prev.customers.map(c => c.id === customerId ? { ...c, balance: Math.max((c.balance || 0) - amount, 0) } : c),
+        receipts: [...(prev.receipts || []), { id: Date.now(), number: 'RCP-' + String((prev.receipts || []).length + 1).padStart(4, '0'), date: today(), customer: customer.name, amount, method }],
+        journal: [...(prev.journal || []), { id: Date.now() + 1, date: today(), ref: 'RCP', memo: 'Payment from ' + customer.name, lines: [{ account: methodAcc(method), debit: amount, credit: 0 }, { account: '1100', debit: 0, credit: amount }] }],
+      };
     });
   }
   function updateSale(id, patch) { setData(prev => ({ ...prev, sales: prev.sales.map(s => s.id === id ? { ...s, ...patch } : s) })); }
@@ -131,15 +175,11 @@ export function DataProvider({ children }) {
         sales: prev.sales.map(s => s.id === saleId ? { ...s, paid: newPaid, status: newPaid >= s.amount ? 'Paid' : 'Partial' } : s),
         customers: cust ? prev.customers.map(c => c.id === cust.id ? { ...c, balance: Math.max((c.balance || 0) - amount, 0) } : c) : prev.customers,
         receipts: [...(prev.receipts || []), { id: Date.now(), number: 'RCP-' + String((prev.receipts || []).length + 1).padStart(4, '0'), date: today(), customer: sale.customer, amount, method, items: sale.items || [] }],
+        journal: [...(prev.journal || []), { id: Date.now() + 1, date: today(), ref: sale.number || 'RCP', memo: 'Payment from ' + sale.customer, lines: [{ account: methodAcc(method), debit: amount, credit: 0 }, { account: '1100', debit: 0, credit: amount }] }],
       };
     });
   }
-  function addQuotation({ customerId, customerName, items, total, validUntil }) {
-    setData(prev => ({
-      ...prev,
-      quotations: [...(prev.quotations || []), { id: Date.now(), number: 'QUO-' + String((prev.quotations || []).length + 1).padStart(4, '0'), date: today(), validUntil, customerId, customer: customerName, items, total, status: 'Draft' }],
-    }));
-  }
+  function addQuotation(q) { setData(prev => ({ ...prev, quotations: [...(prev.quotations || []), { id: Date.now(), number: 'QUO-' + String((prev.quotations || []).length + 1).padStart(4, '0'), date: today(), validUntil: q.validUntil, customerId: q.customerId, customer: q.customerName, items: q.items, total: q.total, status: 'Draft' }] })); }
   function updateQuotation(id, patch) { setData(prev => ({ ...prev, quotations: (prev.quotations || []).map(q => q.id === id ? { ...q, ...patch } : q) })); }
   function convertQuotation(id) {
     setData(prev => {
@@ -150,26 +190,35 @@ export function DataProvider({ children }) {
       const dd = new Date(); dd.setDate(dd.getDate() + 7);
       const sale = { id: Date.now(), number: 'INV-' + String(prev.sales.length + 1).padStart(4, '0'), date: today(), dueDate: dd.toISOString().slice(0, 10), customer: q.customer, amount: q.total, paid: 0, method: 'Credit', status: 'Credit', items: q.items, fromQuotation: q.number };
       return {
-        ...prev, products,
-        sales: [...prev.sales, sale],
+        ...prev, products, sales: [...prev.sales, sale],
         customers: cust ? prev.customers.map(c => c.id === cust.id ? { ...c, balance: (c.balance || 0) + q.total } : c) : prev.customers,
         quotations: prev.quotations.map(x => x.id === id ? { ...x, status: 'Converted' } : x),
+        journal: [...(prev.journal || []), { id: Date.now() + 1, date: today(), ref: sale.number, memo: 'Sale to ' + q.customer + ' (from ' + q.number + ')', lines: [{ account: '1100', debit: q.total, credit: 0 }, { account: '4000', debit: 0, credit: q.total }] }],
       };
     });
   }
-  function addDeliveryNote({ customerName, items, deliveredBy }) {
-    setData(prev => ({
-      ...prev,
-      deliveryNotes: [...(prev.deliveryNotes || []), { id: Date.now(), number: 'DN-' + String((prev.deliveryNotes || []).length + 1).padStart(4, '0'), date: today(), customer: customerName, items, deliveredBy, status: 'Pending' }],
-    }));
-  }
+  function addDeliveryNote(d) { setData(prev => ({ ...prev, deliveryNotes: [...(prev.deliveryNotes || []), { id: Date.now(), number: 'DN-' + String((prev.deliveryNotes || []).length + 1).padStart(4, '0'), date: today(), customer: d.customerName, items: d.items, deliveredBy: d.deliveredBy, status: 'Pending' }] })); }
   function updateDeliveryNote(id, patch) { setData(prev => ({ ...prev, deliveryNotes: (prev.deliveryNotes || []).map(d => d.id === id ? { ...d, ...patch } : d) })); }
+  function addAccount(a) { setData(prev => ({ ...prev, accounts: [...(prev.accounts || []), a] })); }
+  function addJournal({ memo, debitAccount, creditAccount, amount, ref }) {
+    setData(prev => {
+      const amt = Number(amount);
+      if (!amt || amt <= 0 || debitAccount === creditAccount) return prev;
+      return { ...prev, journal: [...(prev.journal || []), { id: Date.now(), date: today(), ref: ref || 'MANUAL', memo: memo || '', lines: [{ account: debitAccount, debit: amt, credit: 0 }, { account: creditAccount, debit: 0, credit: amt }] }] };
+    });
+  }
+  function addDeal(d) { setData(prev => ({ ...prev, deals: [...(prev.deals || []), { ...d, id: Date.now(), date: today(), updatedAt: today() }] })); }
+  function updateDeal(id, patch) { setData(prev => ({ ...prev, deals: (prev.deals || []).map(x => x.id === id ? { ...x, ...patch, updatedAt: today() } : x) })); }
+  function addFollowup(f) { setData(prev => ({ ...prev, followups: [...(prev.followups || []), { ...f, id: Date.now(), done: false }] })); }
+  function updateFollowup(id, patch) { setData(prev => ({ ...prev, followups: (prev.followups || []).map(x => x.id === id ? { ...x, ...patch } : x) })); }
+  function addFeedback(f) { setData(prev => ({ ...prev, feedbacks: [...(prev.feedbacks || []), { ...f, id: Date.now(), date: today() }] })); }
 
   return (
     <DataContext.Provider value={{
       ...data, addCustomer, addSupplier, addSupplierPayment, addProduct, setProductActive, adjustStock,
       addPurchase, addExpense, addSale, addPayment, updateSale, recordSalePayment,
       addQuotation, updateQuotation, convertQuotation, addDeliveryNote, updateDeliveryNote,
+      addAccount, addJournal, addDeal, updateDeal, addFollowup, updateFollowup, addFeedback,
     }}>
       {children}
     </DataContext.Provider>

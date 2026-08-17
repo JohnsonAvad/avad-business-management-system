@@ -36,7 +36,7 @@ export default function DeliveryNotes() {
   function save(e) {
     e.preventDefault();
     setError('');
-    const customer = (customers || []).find(c => c.id === customerId);
+    const customer = (customers || []).find(c => c.id === Number(customerId));
     if (!customer) return setError('Please choose a customer.');
     if (cart.length === 0 || cart.some(i => qtyOf(i) <= 0)) return setError('Add at least one item with a quantity.');
     if (!deliveredBy.trim()) return setError('Please write who delivered the goods.');

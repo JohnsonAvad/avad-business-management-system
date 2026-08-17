@@ -8,6 +8,7 @@ const menu = [
   { to: '/', icon: 'home', label: 'Home' },
   { to: '/sales', icon: 'sales', label: 'Sales' },
   { to: '/customers', icon: 'customers', label: 'Customers' },
+  { to: '/crm', icon: 'crm', label: 'CRM' },
   { to: '/inventory', icon: 'inventory', label: 'Inventory' },
   { to: '/purchases', icon: 'purchases', label: 'Purchases' },
   { to: '/suppliers', icon: 'suppliers', label: 'Suppliers' },

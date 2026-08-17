@@ -18,6 +18,9 @@ import Quotations from './pages/Quotations';
 import NewQuotation from './pages/NewQuotation';
 import DeliveryNotes from './pages/DeliveryNotes';
 import Settings from './pages/Settings';
+import CRM from './pages/CRM';
+import Accounting from './pages/Accounting';
+import Banks from './pages/Banks';
 import Placeholder from './pages/Placeholder';
 
 function Protected() {
@@ -27,12 +30,9 @@ function Protected() {
 }
 
 const coming = {
-  accounting: ['Accounting', 'accounting', 'Phase 3 – ledgers and reports.'],
-  banks: ['Banks', 'banks', 'Phase 3 – bank and cash accounts.'],
   hr: ['HR & Payroll', 'hr', 'Phase 5 – employees and salaries.'],
   marketing: ['Marketing', 'marketing', 'Phase 4 – campaigns and content.'],
-  reports: ['Reports', 'reports', 'Phase 1 – printable business reports.'],
-  
+  reports: ['Reports', 'reports', 'Next – printable business reports.'],
 };
 
 export default function App() {
@@ -57,6 +57,9 @@ export default function App() {
               <Route path="/quotations/new" element={<NewQuotation />} />
               <Route path="/delivery-notes" element={<DeliveryNotes />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/crm" element={<CRM />} />
+              <Route path="/accounting" element={<Accounting />} />
+              <Route path="/banks" element={<Banks />} />
               {Object.entries(coming).map(([key, [title, icon, note]]) => (
                 <Route key={key} path={'/' + key} element={<Placeholder title={title} icon={icon} note={note} />} />
               ))}

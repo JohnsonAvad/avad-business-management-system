@@ -17,7 +17,7 @@ export default function NewQuotation() {
 
   const qtyOf = i => Number(i.qty) || 0;
   const total = cart.reduce((a, i) => a + qtyOf(i) * i.price, 0);
-  const customer = (customers || []).find(c => c.id === customerId);
+  const customer = (customers || []).find(c => c.id === Number(customerId));
   const fCustomers = (customers || []).filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search));
   const fProducts = (products || []).filter(p => p.active !== false && p.name.toLowerCase().includes(prodSearch.toLowerCase()));
 
