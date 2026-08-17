@@ -21,6 +21,7 @@ import Settings from './pages/Settings';
 import CRM from './pages/CRM';
 import Marketing from './pages/Marketing';
 import HR from './pages/HR';
+import Reports from './pages/Reports';
 import Accounting from './pages/Accounting';
 import Banks from './pages/Banks';
 import Placeholder from './pages/Placeholder';
@@ -31,11 +32,7 @@ function Protected() {
   return <Layout />;
 }
 
-const coming = {
- 
-  
-  reports: ['Reports', 'reports', 'Next – printable business reports.'],
-};
+const coming = {};
 
 export default function App() {
   return (
@@ -62,6 +59,7 @@ export default function App() {
               <Route path="/crm" element={<CRM />} />
               <Route path="/marketing" element={<Marketing />} />
               <Route path="/hr" element={<HR />} />
+              <Route path="/reports" element={<Reports />} />
               <Route path="/accounting" element={<Accounting />} />
               <Route path="/banks" element={<Banks />} />
               {Object.entries(coming).map(([key, [title, icon, note]]) => (

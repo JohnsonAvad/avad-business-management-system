@@ -180,3 +180,6 @@ h1,h2,h3{margin:0} a{text-decoration:none;color:inherit}
   .print-card{box-shadow:none;max-width:100%;padding:0;max-height:none;overflow:visible}
   .print-actions{display:none}
 }
+@media print{
+  button, select, input { display: none !important; }
+}
