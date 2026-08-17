@@ -22,6 +22,7 @@ import CRM from './pages/CRM';
 import Marketing from './pages/Marketing';
 import HR from './pages/HR';
 import Reports from './pages/Reports';
+import Analytics from './pages/Analytics';
 import Accounting from './pages/Accounting';
 import Banks from './pages/Banks';
 import Placeholder from './pages/Placeholder';
@@ -60,6 +61,7 @@ export default function App() {
               <Route path="/marketing" element={<Marketing />} />
               <Route path="/hr" element={<HR />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/analytics" element={<Analytics />} />
               <Route path="/accounting" element={<Accounting />} />
               <Route path="/banks" element={<Banks />} />
               {Object.entries(coming).map(([key, [title, icon, note]]) => (

@@ -6,6 +6,7 @@ import Icon from './Icon';
 
 const menu = [
   { to: '/', icon: 'home', label: 'Home' },
+  { to: '/analytics', icon: 'reports', label: 'Analytics' },
   { to: '/sales', icon: 'sales', label: 'Sales' },
   { to: '/customers', icon: 'customers', label: 'Customers' },
   { to: '/crm', icon: 'crm', label: 'CRM' },
