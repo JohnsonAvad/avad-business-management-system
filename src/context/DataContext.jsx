@@ -68,6 +68,14 @@ function seed() {
     feedbacks: [
       { id: 1, customer: 'Peter Okello', rating: 5, comment: 'Fast service!', date: daysAgo(4) },
     ],
+    campaigns: [
+      { id: 1, name: 'Back-to-School Promo', channel: 'WhatsApp', budget: 100000, spent: 40000, status: 'Running', startDate: daysAgo(5) },
+      { id: 2, name: 'Christmas Hamper Flyers', channel: 'Flyers', budget: 150000, spent: 150000, status: 'Done', startDate: daysAgo(30) },
+    ],
+    posts: [
+      { id: 1, title: 'New rice stock arrived!', platform: 'WhatsApp Status', date: daysAgo(1), status: 'Posted' },
+      { id: 2, title: 'Weekend sugar discount', platform: 'Facebook', date: daysAgo(-2), status: 'Planned' },
+    ],
   };
 }
 
@@ -212,6 +220,10 @@ export function DataProvider({ children }) {
   function addFollowup(f) { setData(prev => ({ ...prev, followups: [...(prev.followups || []), { ...f, id: Date.now(), done: false }] })); }
   function updateFollowup(id, patch) { setData(prev => ({ ...prev, followups: (prev.followups || []).map(x => x.id === id ? { ...x, ...patch } : x) })); }
   function addFeedback(f) { setData(prev => ({ ...prev, feedbacks: [...(prev.feedbacks || []), { ...f, id: Date.now(), date: today() }] })); }
+  function addCampaign(c) { setData(prev => ({ ...prev, campaigns: [...(prev.campaigns || []), { ...c, id: Date.now(), status: 'Planned' }] })); }
+  function updateCampaign(id, patch) { setData(prev => ({ ...prev, campaigns: (prev.campaigns || []).map(x => x.id === id ? { ...x, ...patch } : x) })); }
+  function addPost(p) { setData(prev => ({ ...prev, posts: [...(prev.posts || []), { ...p, id: Date.now(), status: 'Planned' }] })); }
+  function updatePost(id, patch) { setData(prev => ({ ...prev, posts: (prev.posts || []).map(x => x.id === id ? { ...x, ...patch } : x) })); }
 
   return (
     <DataContext.Provider value={{
@@ -219,6 +231,7 @@ export function DataProvider({ children }) {
       addPurchase, addExpense, addSale, addPayment, updateSale, recordSalePayment,
       addQuotation, updateQuotation, convertQuotation, addDeliveryNote, updateDeliveryNote,
       addAccount, addJournal, addDeal, updateDeal, addFollowup, updateFollowup, addFeedback,
+      addCampaign, updateCampaign, addPost, updatePost,
     }}>
       {children}
     </DataContext.Provider>
