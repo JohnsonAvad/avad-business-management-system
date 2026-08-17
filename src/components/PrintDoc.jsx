@@ -12,14 +12,19 @@ export default function PrintDoc({ doc, onClose, onSignPay, onReject, onFeedback
   lines.push(doc.type + ' ' + doc.number);
   lines.push('Date: ' + doc.date);
   if (doc.dueDate) lines.push('Due: ' + doc.dueDate);
+  if (doc.validUntil) lines.push('Valid until: ' + doc.validUntil);
+  if (doc.deliveredBy) lines.push('Delivered by: ' + doc.deliveredBy);
   lines.push('Customer: ' + doc.customer);
   if (doc.items && doc.items.length) {
     lines.push('Items:');
     doc.items.forEach(i => lines.push('- ' + i.name + ' x' + i.qty + ' = ' + format(i.qty * (i.price || 0))));
   }
-  lines.push('Total: ' + format(doc.total || 0));
-  lines.push('Paid: ' + format(doc.paid || 0) + ' (' + (doc.method || '') + ')');
-  if (balance > 0) lines.push('Balance: ' + format(balance));
+  if (doc.type !== 'QUOTATION' && doc.type !== 'DELIVERY') lines.push('Total: ' + format(doc.total || 0));
+  if (doc.type === 'QUOTATION') lines.push('Total: ' + format(doc.total || 0));
+  if (doc.type !== 'QUOTATION' && doc.type !== 'DELIVERY') {
+    lines.push('Paid: ' + format(doc.paid || 0) + ' (' + (doc.method || '') + ')');
+    if (balance > 0) lines.push('Balance: ' + format(balance));
+  }
   if (doc.type === 'INVOICE' && doc.warranty) lines.push('Warranty: ' + doc.warranty);
   lines.push(doc.footer || 'Thank you for your business!');
   const text = lines.join('\n');
@@ -36,7 +41,9 @@ export default function PrintDoc({ doc, onClose, onSignPay, onReject, onFeedback
             <div style={{ color: 'var(--muted)', fontSize: 12 }}>{doc.type} • {doc.number}</div>
           </div>
           <div className="total-line"><span>Date</span><span>{doc.date}</span></div>
-          {doc.dueDate && <div className="total-line"><span>Due (expiration)</span><span>{doc.dueDate}</span></div>}
+                    {doc.dueDate && <div className="total-line"><span>Due (expiration)</span><span>{doc.dueDate}</span></div>}
+          {doc.validUntil && <div className="total-line"><span>Valid until</span><span>{doc.validUntil}</span></div>}
+          {doc.deliveredBy && <div className="total-line"><span>Delivered by</span><span>{doc.deliveredBy}</span></div>}
           <div className="total-line"><span>Customer</span><span>{doc.customer}</span></div>
           {doc.items && doc.items.length > 0 && (
             <table className="table" style={{ margin: '8px 0' }}>
@@ -53,9 +60,15 @@ export default function PrintDoc({ doc, onClose, onSignPay, onReject, onFeedback
               {doc.type === 'RECEIPT' ? 'Payment received on account.' : 'Item details were not recorded for this sale.'}
             </div>
           )}
-          <div className="total-line big"><span>Total</span><span className="amt">{format(doc.total || 0)}</span></div>
-          <div className="total-line"><span>Paid ({doc.method})</span><span className="amt green">{format(doc.paid || 0)}</span></div>
-          {balance > 0 && <div className="total-line"><span>Balance</span><span className="amt red">{format(balance)}</span></div>}
+            {doc.type !== 'DELIVERY' && (
+            <div className="total-line big"><span>Total</span><span className="amt">{format(doc.total || 0)}</span></div>
+          )}
+          {doc.type !== 'QUOTATION' && doc.type !== 'DELIVERY' && (
+            <>
+              <div className="total-line"><span>Paid ({doc.method})</span><span className="amt green">{format(doc.paid || 0)}</span></div>
+              {balance > 0 && <div className="total-line"><span>Balance</span><span className="amt red">{format(balance)}</span></div>}
+            </>
+          )}
           {doc.type === 'INVOICE' && doc.warranty && (
             <div style={{ color: 'var(--muted)', fontSize: 12, margin: '8px 0' }}>Warranty: {doc.warranty}</div>
           )}

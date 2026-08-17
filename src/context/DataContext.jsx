@@ -43,9 +43,7 @@ function seed() {
       { id: 2, date: daysAgo(2), category: 'Electricity', amount: 85000, note: 'Yaka top-up', method: 'Mobile Money' },
       { id: 3, date: daysAgo(0), category: 'Repairs', amount: 40000, note: 'Shelf repair', method: 'Cash' },
     ],
-    receipts: [],
-    supplierPayments: [],
-    movements: [],
+    receipts: [], supplierPayments: [], movements: [], quotations: [], deliveryNotes: [],
   };
 }
 
@@ -56,15 +54,10 @@ export function DataProvider({ children }) {
     if (!saved) { localStorage.setItem(KEY, JSON.stringify(seeded)); return seeded; }
     return { ...seeded, ...saved };
   });
-
   useEffect(() => { localStorage.setItem(KEY, JSON.stringify(data)); }, [data]);
 
-  function addCustomer(c) {
-    setData(prev => ({ ...prev, customers: [...prev.customers, { ...c, id: Date.now(), balance: 0 }] }));
-  }
-  function addSupplier(s) {
-    setData(prev => ({ ...prev, suppliers: [...prev.suppliers, { ...s, id: Date.now(), balance: 0 }] }));
-  }
+  function addCustomer(c) { setData(prev => ({ ...prev, customers: [...prev.customers, { ...c, id: Date.now(), balance: 0 }] })); }
+  function addSupplier(s) { setData(prev => ({ ...prev, suppliers: [...prev.suppliers, { ...s, id: Date.now(), balance: 0 }] })); }
   function addSupplierPayment({ supplierId, amount, method }) {
     setData(prev => {
       const sup = prev.suppliers.find(s => s.id === supplierId);
@@ -72,10 +65,7 @@ export function DataProvider({ children }) {
       return {
         ...prev,
         suppliers: prev.suppliers.map(s => s.id === supplierId ? { ...s, balance: Math.max((s.balance || 0) - amount, 0) } : s),
-        supplierPayments: [...(prev.supplierPayments || []), {
-          id: Date.now(), number: 'PAY-' + String((prev.supplierPayments || []).length + 1).padStart(4, '0'),
-          date: today(), supplier: sup.name, amount, method,
-        }],
+        supplierPayments: [...(prev.supplierPayments || []), { id: Date.now(), number: 'PAY-' + String((prev.supplierPayments || []).length + 1).padStart(4, '0'), date: today(), supplier: sup.name, amount, method }],
       };
     });
   }
@@ -85,9 +75,7 @@ export function DataProvider({ children }) {
       return { ...prev, products: [...prev.products, { ...p, id: Date.now() }], movements: [...(prev.movements || []), ...movement] };
     });
   }
-  function setProductActive(productId, active) {
-    setData(prev => ({ ...prev, products: prev.products.map(p => p.id === productId ? { ...p, active } : p) }));
-  }
+  function setProductActive(productId, active) { setData(prev => ({ ...prev, products: prev.products.map(p => p.id === productId ? { ...p, active } : p) })); }
   function adjustStock({ productId, change, reason }) {
     setData(prev => {
       const prod = prev.products.find(p => p.id === productId);
@@ -95,25 +83,16 @@ export function DataProvider({ children }) {
       const newStock = Math.max(prod.stock + change, 0);
       const realChange = newStock - prod.stock;
       if (realChange === 0) return prev;
-      return {
-        ...prev,
-        products: prev.products.map(p => p.id === productId ? { ...p, stock: newStock } : p),
-        movements: [...(prev.movements || []), { id: Date.now(), date: today(), product: prod.name, change: realChange, reason }],
-      };
+      return { ...prev, products: prev.products.map(p => p.id === productId ? { ...p, stock: newStock } : p), movements: [...(prev.movements || []), { id: Date.now(), date: today(), product: prod.name, change: realChange, reason }] };
     });
   }
   function addPurchase({ supplierId, supplierName, items, total, paid, method }) {
     setData(prev => {
-      const products = prev.products.map(p => {
-        const line = items.find(i => i.productId === p.id);
-        return line ? { ...p, stock: p.stock + line.qty, cost: line.cost } : p;
-      });
+      const products = prev.products.map(p => { const line = items.find(i => i.productId === p.id); return line ? { ...p, stock: p.stock + line.qty, cost: line.cost } : p; });
       const owed = Math.max(total - paid, 0);
       const newMoves = items.map((line, idx) => ({ id: Date.now() + 2 + idx, date: today(), product: line.name, change: line.qty, reason: 'Purchase from ' + supplierName }));
       let supplierPayments = prev.supplierPayments || [];
-      if (paid > 0) {
-        supplierPayments = [...supplierPayments, { id: Date.now() + 1, number: 'PAY-' + String(supplierPayments.length + 1).padStart(4, '0'), date: today(), supplier: supplierName, amount: paid, method }];
-      }
+      if (paid > 0) supplierPayments = [...supplierPayments, { id: Date.now() + 1, number: 'PAY-' + String(supplierPayments.length + 1).padStart(4, '0'), date: today(), supplier: supplierName, amount: paid, method }];
       return {
         ...prev, products, supplierPayments,
         suppliers: prev.suppliers.map(s => s.id === supplierId ? { ...s, balance: (s.balance || 0) + owed } : s),
@@ -122,49 +101,25 @@ export function DataProvider({ children }) {
       };
     });
   }
-  function addExpense(e) {
-    setData(prev => ({ ...prev, expenses: [...prev.expenses, { id: Date.now(), date: today(), category: e.category, amount: Number(e.amount), note: e.note, method: e.method }] }));
-  }
+  function addExpense(e) { setData(prev => ({ ...prev, expenses: [...prev.expenses, { id: Date.now(), date: today(), category: e.category, amount: Number(e.amount), note: e.note, method: e.method }] })); }
   function addSale({ customerId, customerName, items, total, paid, method, dueDate }) {
     setData(prev => {
-      const products = prev.products.map(p => {
-        const line = items.find(i => i.productId === p.id);
-        return line ? { ...p, stock: p.stock - line.qty } : p;
-      });
+      const products = prev.products.map(p => { const line = items.find(i => i.productId === p.id); return line ? { ...p, stock: p.stock - line.qty } : p; });
       const owed = Math.max(total - paid, 0);
-      const sale = {
-        id: Date.now(),
-        number: 'INV-' + String((prev.sales || []).length + 1).padStart(4, '0'),
-        date: today(), dueDate,
-        customer: customerName, amount: total, paid, method,
-        status: paid >= total ? 'Paid' : paid > 0 ? 'Partial' : 'Credit',
-        items,
-      };
+      const sale = { id: Date.now(), number: 'INV-' + String((prev.sales || []).length + 1).padStart(4, '0'), date: today(), dueDate, customer: customerName, amount: total, paid, method, status: paid >= total ? 'Paid' : paid > 0 ? 'Partial' : 'Credit', items };
       let receipts = prev.receipts || [];
-      if (paid > 0) {
-        receipts = [...receipts, { id: Date.now() + 1, number: 'RCP-' + String(receipts.length + 1).padStart(4, '0'), date: sale.date, customer: customerName, amount: paid, method, items }];
-      }
-      return {
-        ...prev, products, receipts,
-        customers: prev.customers.map(c => c.id === customerId ? { ...c, balance: (c.balance || 0) + owed } : c),
-        sales: [...prev.sales, sale],
-      };
+      if (paid > 0) receipts = [...receipts, { id: Date.now() + 1, number: 'RCP-' + String(receipts.length + 1).padStart(4, '0'), date: sale.date, customer: customerName, amount: paid, method, items }];
+      return { ...prev, products, receipts, customers: prev.customers.map(c => c.id === customerId ? { ...c, balance: (c.balance || 0) + owed } : c), sales: [...prev.sales, sale] };
     });
   }
   function addPayment({ customerId, amount, method }) {
     setData(prev => {
       const customer = prev.customers.find(c => c.id === customerId);
       if (!customer) return prev;
-      return {
-        ...prev,
-        customers: prev.customers.map(c => c.id === customerId ? { ...c, balance: Math.max((c.balance || 0) - amount, 0) } : c),
-        receipts: [...(prev.receipts || []), { id: Date.now(), number: 'RCP-' + String((prev.receipts || []).length + 1).padStart(4, '0'), date: today(), customer: customer.name, amount, method }],
-      };
+      return { ...prev, customers: prev.customers.map(c => c.id === customerId ? { ...c, balance: Math.max((c.balance || 0) - amount, 0) } : c), receipts: [...(prev.receipts || []), { id: Date.now(), number: 'RCP-' + String((prev.receipts || []).length + 1).padStart(4, '0'), date: today(), customer: customer.name, amount, method }] };
     });
   }
-  function updateSale(id, patch) {
-    setData(prev => ({ ...prev, sales: prev.sales.map(s => s.id === id ? { ...s, ...patch } : s) }));
-  }
+  function updateSale(id, patch) { setData(prev => ({ ...prev, sales: prev.sales.map(s => s.id === id ? { ...s, ...patch } : s) })); }
   function recordSalePayment({ saleId, amount, method }) {
     setData(prev => {
       const sale = prev.sales.find(s => s.id === saleId);
@@ -179,11 +134,42 @@ export function DataProvider({ children }) {
       };
     });
   }
+  function addQuotation({ customerId, customerName, items, total, validUntil }) {
+    setData(prev => ({
+      ...prev,
+      quotations: [...(prev.quotations || []), { id: Date.now(), number: 'QUO-' + String((prev.quotations || []).length + 1).padStart(4, '0'), date: today(), validUntil, customerId, customer: customerName, items, total, status: 'Draft' }],
+    }));
+  }
+  function updateQuotation(id, patch) { setData(prev => ({ ...prev, quotations: (prev.quotations || []).map(q => q.id === id ? { ...q, ...patch } : q) })); }
+  function convertQuotation(id) {
+    setData(prev => {
+      const q = (prev.quotations || []).find(x => x.id === id);
+      if (!q || q.status === 'Converted') return prev;
+      const products = prev.products.map(p => { const line = q.items.find(i => i.productId === p.id); return line ? { ...p, stock: Math.max(p.stock - line.qty, 0) } : p; });
+      const cust = prev.customers.find(c => c.id === q.customerId);
+      const dd = new Date(); dd.setDate(dd.getDate() + 7);
+      const sale = { id: Date.now(), number: 'INV-' + String(prev.sales.length + 1).padStart(4, '0'), date: today(), dueDate: dd.toISOString().slice(0, 10), customer: q.customer, amount: q.total, paid: 0, method: 'Credit', status: 'Credit', items: q.items, fromQuotation: q.number };
+      return {
+        ...prev, products,
+        sales: [...prev.sales, sale],
+        customers: cust ? prev.customers.map(c => c.id === cust.id ? { ...c, balance: (c.balance || 0) + q.total } : c) : prev.customers,
+        quotations: prev.quotations.map(x => x.id === id ? { ...x, status: 'Converted' } : x),
+      };
+    });
+  }
+  function addDeliveryNote({ customerName, items, deliveredBy }) {
+    setData(prev => ({
+      ...prev,
+      deliveryNotes: [...(prev.deliveryNotes || []), { id: Date.now(), number: 'DN-' + String((prev.deliveryNotes || []).length + 1).padStart(4, '0'), date: today(), customer: customerName, items, deliveredBy, status: 'Pending' }],
+    }));
+  }
+  function updateDeliveryNote(id, patch) { setData(prev => ({ ...prev, deliveryNotes: (prev.deliveryNotes || []).map(d => d.id === id ? { ...d, ...patch } : d) })); }
 
   return (
     <DataContext.Provider value={{
-      ...data, addCustomer, addSupplier, addSupplierPayment, addProduct, setProductActive,
-      adjustStock, addPurchase, addExpense, addSale, addPayment, updateSale, recordSalePayment,
+      ...data, addCustomer, addSupplier, addSupplierPayment, addProduct, setProductActive, adjustStock,
+      addPurchase, addExpense, addSale, addPayment, updateSale, recordSalePayment,
+      addQuotation, updateQuotation, convertQuotation, addDeliveryNote, updateDeliveryNote,
     }}>
       {children}
     </DataContext.Provider>

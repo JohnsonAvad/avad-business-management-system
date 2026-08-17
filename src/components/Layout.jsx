@@ -13,6 +13,8 @@ const menu = [
   { to: '/suppliers', icon: 'suppliers', label: 'Suppliers' },
   { to: '/expenses', icon: 'expenses', label: 'Expenses' },
   { to: '/invoices', icon: 'invoices', label: 'Invoices & Receipts' },
+  { to: '/quotations', icon: 'invoices', label: 'Quotations' },
+  { to: '/delivery-notes', icon: 'inventory', label: 'Delivery Notes' },
   { to: '/accounting', icon: 'accounting', label: 'Accounting' },
   { to: '/banks', icon: 'banks', label: 'Banks' },
   { to: '/hr', icon: 'hr', label: 'HR & Payroll' },

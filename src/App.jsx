@@ -14,6 +14,9 @@ import Suppliers from './pages/Suppliers';
 import Purchases from './pages/Purchases';
 import NewPurchase from './pages/NewPurchase';
 import InvoicesReceipts from './pages/InvoicesReceipts';
+import Quotations from './pages/Quotations';
+import NewQuotation from './pages/NewQuotation';
+import DeliveryNotes from './pages/DeliveryNotes';
 import Settings from './pages/Settings';
 import Placeholder from './pages/Placeholder';
 
@@ -50,6 +53,9 @@ export default function App() {
               <Route path="/purchases" element={<Purchases />} />
               <Route path="/purchases/new" element={<NewPurchase />} />
               <Route path="/invoices" element={<InvoicesReceipts />} />
+              <Route path="/quotations" element={<Quotations />} />
+              <Route path="/quotations/new" element={<NewQuotation />} />
+              <Route path="/delivery-notes" element={<DeliveryNotes />} />
               <Route path="/settings" element={<Settings />} />
               {Object.entries(coming).map(([key, [title, icon, note]]) => (
                 <Route key={key} path={'/' + key} element={<Placeholder title={title} icon={icon} note={note} />} />
