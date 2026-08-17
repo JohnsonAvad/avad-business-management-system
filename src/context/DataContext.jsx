@@ -76,6 +76,19 @@ function seed() {
       { id: 1, title: 'New rice stock arrived!', platform: 'WhatsApp Status', date: daysAgo(1), status: 'Posted' },
       { id: 2, title: 'Weekend sugar discount', platform: 'Facebook', date: daysAgo(-2), status: 'Planned' },
     ],
+    employees: [
+      { id: 1, name: 'Mary Atim', phone: '0701111222', role: 'Cashier', salary: 400000, active: true, joinDate: daysAgo(90) },
+      { id: 2, name: 'John Bosco', phone: '0782333444', role: 'Sales', salary: 350000, active: true, joinDate: daysAgo(60) },
+    ],
+    attendance: [
+      { id: 1, date: daysAgo(1), employeeId: 1, status: 'Present' },
+      { id: 2, date: daysAgo(1), employeeId: 2, status: 'Half' },
+      { id: 3, date: daysAgo(0), employeeId: 1, status: 'Present' },
+    ],
+    leaves: [
+      { id: 1, employeeId: 2, fromDate: daysAgo(-3), toDate: daysAgo(-4), reason: 'Family event', status: 'Pending' },
+    ],
+    payrolls: [],
   };
 }
 
@@ -224,6 +237,44 @@ export function DataProvider({ children }) {
   function updateCampaign(id, patch) { setData(prev => ({ ...prev, campaigns: (prev.campaigns || []).map(x => x.id === id ? { ...x, ...patch } : x) })); }
   function addPost(p) { setData(prev => ({ ...prev, posts: [...(prev.posts || []), { ...p, id: Date.now(), status: 'Planned' }] })); }
   function updatePost(id, patch) { setData(prev => ({ ...prev, posts: (prev.posts || []).map(x => x.id === id ? { ...x, ...patch } : x) })); }
+  function addEmployee(e) { setData(prev => ({ ...prev, employees: [...(prev.employees || []), { ...e, id: Date.now(), active: true, joinDate: today() }] })); }
+  function updateEmployee(id, patch) { setData(prev => ({ ...prev, employees: prev.employees.map(x => x.id === id ? { ...x, ...patch } : x) })); }
+  function markAttendance({ date, employeeId, status }) {
+    setData(prev => {
+      const existing = (prev.attendance || []).find(a => a.date === date && a.employeeId === employeeId);
+      if (existing) return { ...prev, attendance: prev.attendance.map(a => a.id === existing.id ? { ...a, status } : a) };
+      return { ...prev, attendance: [...(prev.attendance || []), { id: Date.now(), date, employeeId, status }] };
+    });
+  }
+  function addLeave(l) { setData(prev => ({ ...prev, leaves: [...(prev.leaves || []), { ...l, id: Date.now(), status: 'Pending' }] })); }
+  function updateLeave(id, patch) { setData(prev => ({ ...prev, leaves: (prev.leaves || []).map(x => x.id === id ? { ...x, ...patch } : x) })); }
+  function generatePayroll(month) {
+    setData(prev => {
+      const existing = (prev.payrolls || []).filter(p => p.month === month).map(p => p.employeeId);
+      const active = prev.employees.filter(e => e.active !== false && !existing.includes(e.id));
+      const newRecords = active.map((emp, i) => {
+        const days = (prev.attendance || []).filter(a => a.employeeId === emp.id && a.date.startsWith(month));
+        const absent = days.filter(a => a.status === 'Absent').length;
+        const half = days.filter(a => a.status === 'Half').length;
+        const dailyRate = emp.salary / 30;
+        const deductions = Math.round(dailyRate * (absent + half * 0.5));
+        return { id: Date.now() + i, month, employeeId: emp.id, base: emp.salary, deductions, net: Math.max(emp.salary - deductions, 0), status: 'Calculated', date: null };
+      });
+      return { ...prev, payrolls: [...(prev.payrolls || []), ...newRecords] };
+    });
+  }
+  function payPayroll({ id, method }) {
+    setData(prev => {
+      const pr = (prev.payrolls || []).find(x => x.id === id);
+      if (!pr || pr.status === 'Paid') return prev;
+      const emp = prev.employees.find(e => e.id === pr.employeeId);
+      return {
+        ...prev,
+        payrolls: prev.payrolls.map(x => x.id === id ? { ...x, status: 'Paid', date: today(), method } : x),
+        journal: [...(prev.journal || []), { id: Date.now(), date: today(), ref: 'PAYROLL', memo: 'Salary for ' + (emp ? emp.name : 'staff'), lines: [{ account: '6000', debit: pr.net, credit: 0 }, { account: methodAcc(method), debit: 0, credit: pr.net }] }],
+      };
+    });
+  }
 
   return (
     <DataContext.Provider value={{
@@ -232,6 +283,7 @@ export function DataProvider({ children }) {
       addQuotation, updateQuotation, convertQuotation, addDeliveryNote, updateDeliveryNote,
       addAccount, addJournal, addDeal, updateDeal, addFollowup, updateFollowup, addFeedback,
       addCampaign, updateCampaign, addPost, updatePost,
+      addEmployee, updateEmployee, markAttendance, addLeave, updateLeave, generatePayroll, payPayroll,
     }}>
       {children}
     </DataContext.Provider>

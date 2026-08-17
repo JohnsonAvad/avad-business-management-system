@@ -20,6 +20,7 @@ import DeliveryNotes from './pages/DeliveryNotes';
 import Settings from './pages/Settings';
 import CRM from './pages/CRM';
 import Marketing from './pages/Marketing';
+import HR from './pages/HR';
 import Accounting from './pages/Accounting';
 import Banks from './pages/Banks';
 import Placeholder from './pages/Placeholder';
@@ -31,7 +32,7 @@ function Protected() {
 }
 
 const coming = {
-  hr: ['HR & Payroll', 'hr', 'Phase 5 – employees and salaries.'],
+ 
   
   reports: ['Reports', 'reports', 'Next – printable business reports.'],
 };
@@ -60,6 +61,7 @@ export default function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/crm" element={<CRM />} />
               <Route path="/marketing" element={<Marketing />} />
+              <Route path="/hr" element={<HR />} />
               <Route path="/accounting" element={<Accounting />} />
               <Route path="/banks" element={<Banks />} />
               {Object.entries(coming).map(([key, [title, icon, note]]) => (
