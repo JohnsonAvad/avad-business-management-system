@@ -16,8 +16,10 @@ export default function NewPurchase() {
   const [method, setMethod] = useState('Cash');
   const [paidInput, setPaidInput] = useState('');
   const [error, setError] = useState('');
-  const [done, setDone] = useState(null);
 
+  const [done, setDone] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [barcodeInput, setBarcodeInput] = useState('');
   const supplier = (suppliers || []).find(s => s.id === supplierId);
   const qtyOf = i => Number(i.qty) || 0;
   const costOf = i => Number(i.cost) || 0;
@@ -58,6 +60,16 @@ export default function NewPurchase() {
   }
 
   const removeLine = id => setCart(prev => prev.filter(i => i.productId !== id));
+
+  function scanBarcode(code) {
+    setError('');
+    const clean = String(code).trim();
+    if (!clean) return;
+    const prod = (products || []).find(p => p.active !== false && p.barcode === clean);
+    if (!prod) { setError('No product has barcode ' + clean + '. Add it in Inventory first.'); return; }
+    addToCart(prod);
+    setBarcodeInput('');
+  }
 
   function goPayment() {
     setError('');
@@ -138,10 +150,17 @@ export default function NewPurchase() {
       {step === 1 && (
         <div className="panel">
           <div className="panel-title">Who are you buying from?</div>
-          <div className="search-bar" style={{ marginBottom: 14 }}>
-            <Icon name="search" size={18} />
-            <input placeholder="Search supplier..." value={supSearch} onChange={e => setSupSearch(e.target.value)} />
-          </div>
+                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+              <div className="search-bar" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}>
+                <Icon name="search" size={18} />
+                <input placeholder="Search product..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} />
+              </div>
+              <form className="search-bar" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}
+                onSubmit={e => { e.preventDefault(); scanBarcode(barcodeInput); }}>
+                <input placeholder="Scan / type barcode + Enter" value={barcodeInput} onChange={e => setBarcodeInput(e.target.value)} />
+              </form>
+              <button type="button" className="btn btn-blue" onClick={() => setScanning(true)}>📷 Scan</button>
+            </div>
           <div className="choice-grid">
             {filteredSuppliers.map(s => (
               <button key={s.id} className="choice-card" onClick={() => pickSupplier(s.id)}>
@@ -242,6 +261,9 @@ export default function NewPurchase() {
             ✓ Finish Purchase
           </button>
         </div>
+      )}
+         {scanning && (
+        <BarcodeScanner onScan={code => { setScanning(false); scanBarcode(code); }} onClose={() => setScanning(false)} />
       )}
     </>
   );

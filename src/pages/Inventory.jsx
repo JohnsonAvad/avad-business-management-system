@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { useCurrency } from '../context/CurrencyContext';
 import Icon from '../components/Icon';
+import BarcodeScanner from '../components/BarcodeScanner';
 
 const REASONS = ['Delivery Received', 'Stock Count Correction', 'Damaged / Expired', 'Theft / Loss', 'Other'];
 
@@ -13,7 +14,8 @@ export default function Inventory() {
   const [showDeleted, setShowDeleted] = useState(false);
   const [adjustId, setAdjustId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  const [form, setForm] = useState({ name: '', price: '', cost: '', stock: '', minStock: '' });
+  const [scanning, setScanning] = useState(false);
+  const [form, setForm] = useState({ name: '', barcode: '', price: '', cost: '', stock: '', minStock: '' });
   const [adj, setAdj] = useState({ type: 'In', qty: '', reason: REASONS[0] });
   const [error, setError] = useState('');
 
@@ -21,7 +23,9 @@ export default function Inventory() {
   const activeProducts = products.filter(p => p.active !== false);
   const deletedCount = products.length - activeProducts.length;
   const pool = showDeleted ? products : activeProducts;
-  const filtered = pool.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = pool.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase()) || (p.barcode || '').includes(search)
+  );
   const low = activeProducts.filter(p => p.stock <= p.minStock);
   const stockValue = activeProducts.reduce((a, p) => a + p.stock * (p.cost || 0), 0);
   const adjustProduct = products.find(p => p.id === adjustId);
@@ -33,20 +37,39 @@ export default function Inventory() {
         : p.stock <= p.minStock ? ['Low Stock', 'amber']
           : ['In Stock', 'green'];
 
+  function handleScan(code) {
+    setScanning(false);
+    const clean = String(code).trim();
+    if (!clean) return;
+    const prod = (products || []).find(p => p.active !== false && p.barcode === clean);
+    if (prod) {
+      setError('');
+      setAdj({ type: 'In', qty: '', reason: REASONS[0] });
+      setAdjustId(prod.id);
+    } else {
+      setError('');
+      setForm({ name: '', barcode: clean, price: '', cost: '', stock: '', minStock: '' });
+      setShowAdd(true);
+    }
+  }
+
   function saveProduct(e) {
     e.preventDefault();
     setError('');
     if (!form.name.trim()) return setError('Please enter the product name.');
     const price = Number(form.price);
     if (!price || price <= 0) return setError('Please enter a valid selling price.');
+    if (form.barcode.trim() && (products || []).some(p => p.active !== false && p.barcode === form.barcode.trim()))
+      return setError('Another product already uses this barcode.');
     addProduct({
       name: form.name.trim(),
+      barcode: form.barcode.trim(),
       price,
       cost: Number(form.cost) || 0,
       stock: Number(form.stock) || 0,
       minStock: Number(form.minStock) || 0,
     });
-    setForm({ name: '', price: '', cost: '', stock: '', minStock: '' });
+    setForm({ name: '', barcode: '', price: '', cost: '', stock: '', minStock: '' });
     setShowAdd(false);
   }
 
@@ -73,9 +96,12 @@ export default function Inventory() {
           <h1 className="page-title">Inventory</h1>
           <div className="page-sub">Your products and stock levels.</div>
         </div>
-        <button className="btn btn-green btn-lg" onClick={() => { setError(''); setShowAdd(true); }}>
-          <Icon name="plus" size={18} /> Add Product
-        </button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="btn btn-blue btn-lg" onClick={() => { setError(''); setScanning(true); }}>📷 Scan Barcode</button>
+          <button className="btn btn-green btn-lg" onClick={() => { setError(''); setShowAdd(true); }}>
+            <Icon name="plus" size={18} /> Add Product
+          </button>
+        </div>
       </div>
 
       <div className="stat-grid">
@@ -98,7 +124,7 @@ export default function Inventory() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
           <div className="search-bar" style={{ marginBottom: 0 }}>
             <Icon name="search" size={18} />
-            <input placeholder="Search product..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input placeholder="Search product or barcode..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           {deletedCount > 0 && (
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: 'var(--muted)', cursor: 'pointer' }}>
@@ -119,7 +145,10 @@ export default function Inventory() {
               const isDeleted = p.active === false;
               return (
                 <tr key={p.id} className={isDeleted ? 'row-deleted' : ''}>
-                  <td style={{ fontWeight: 700 }}>{p.name}</td>
+                  <td style={{ fontWeight: 700 }}>
+                    {p.name}
+                    {p.barcode && <div className="choice-sub">{p.barcode}</div>}
+                  </td>
                   <td>{format(p.price)}</td>
                   <td style={{ fontWeight: 800 }}>{p.stock}</td>
                   <td><span className={'badge ' + color}>{label}</span></td>
@@ -179,6 +208,10 @@ export default function Inventory() {
             <div className="form-group">
               <label>Product Name</label>
               <input placeholder="e.g. Beans 1kg" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} autoFocus />
+            </div>
+            <div className="form-group">
+              <label>Barcode (scan or type — optional)</label>
+              <input placeholder="e.g. 6291041500213" value={form.barcode} onChange={e => setForm({ ...form, barcode: e.target.value })} />
             </div>
             <div className="form-group">
               <label>Selling Price (what the customer pays)</label>
@@ -267,6 +300,8 @@ export default function Inventory() {
           </div>
         </div>
       )}
+
+      {scanning && <BarcodeScanner onScan={handleScan} onClose={() => setScanning(false)} />}
     </>
   );
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useCurrency } from '../context/CurrencyContext';
 import Icon from '../components/Icon';
+import BarcodeScanner from '../components/BarcodeScanner';
 
 export default function NewSale() {
   const { customers, products, receipts, addSale } = useData();
@@ -16,6 +17,8 @@ export default function NewSale() {
   const [method, setMethod] = useState('Cash');
   const [paidInput, setPaidInput] = useState('');
   const [dueDays, setDueDays] = useState('7');
+  const [scanning, setScanning] = useState(false);
+  const [barcodeInput, setBarcodeInput] = useState('');
   const [error, setError] = useState('');
   const [done, setDone] = useState(null);
 
@@ -72,6 +75,16 @@ export default function NewSale() {
   }
 
   const removeLine = id => setCart(prev => prev.filter(i => i.productId !== id));
+
+  function scanBarcode(code) {
+    setError('');
+    const clean = String(code).trim();
+    if (!clean) return;
+    const prod = (products || []).find(p => p.active !== false && p.barcode === clean);
+    if (!prod) { setError('No product has barcode ' + clean + '. Add it in Inventory first.'); return; }
+    addToCart(prod);
+    setBarcodeInput('');
+  }
 
   function goPayment() {
     setError('');
@@ -179,9 +192,16 @@ export default function NewSale() {
         <>
           <div className="panel">
             <div className="panel-title">What are they buying?</div>
-            <div className="search-bar">
-              <Icon name="search" size={18} />
-              <input placeholder="Search product..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} autoFocus />
+                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+              <div className="search-bar" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}>
+                <Icon name="search" size={18} />
+                <input placeholder="Search product..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} />
+              </div>
+              <form className="search-bar" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}
+                onSubmit={e => { e.preventDefault(); scanBarcode(barcodeInput); }}>
+                <input placeholder="Scan / type barcode + Enter" value={barcodeInput} onChange={e => setBarcodeInput(e.target.value)} />
+              </form>
+              <button type="button" className="btn btn-blue" onClick={() => setScanning(true)}>📷 Scan</button>
             </div>
             <div className="product-grid">
               {filteredProducts.map(p => {
@@ -278,6 +298,9 @@ export default function NewSale() {
             ✓ Finish Sale
           </button>
         </div>
+      )}
+         {scanning && (
+        <BarcodeScanner onScan={code => { setScanning(false); scanBarcode(code); }} onClose={() => setScanning(false)} />
       )}
     </>
   );
