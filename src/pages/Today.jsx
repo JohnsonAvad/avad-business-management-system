@@ -51,10 +51,11 @@ export default function Today() {
     const lowCount = (products || []).filter(p => p.active !== false && p.stock <= p.minStock).length;
 
     const briefLines = [
-        '☀️ AVAD Morning Brief — ' + (business.name || 'Your Business'),
+        '☀️ ' + greeting + ', ' + displayName + '!',
+        'Here is how ' + (business.name || 'your business') + ' performed yesterday:',
         new Date().toDateString(),
         '',
-        '💰 Yesterday: ' + format(yRevenue) + (isService ? ' earned' : ' sold') + ' • ' + format(yProfit) + ' profit',
+        '💰 ' + format(yRevenue) + (isService ? ' earned' : ' sold') + ' • ' + format(yProfit) + ' profit',
         '🔴 Owed to you: ' + format(totalOwed) + (debtors.length ? ' (' + debtors.length + ' customer' + (debtors.length > 1 ? 's' : '') + ')' : ''),
     ];
     if (!isService && restocks.length) briefLines.push('📦 Restock soon: ' + restocks.slice(0, 3).map(p => p.name).join(', '));
@@ -87,7 +88,10 @@ export default function Today() {
             <div className="page-header">
                 <div>
                     <h1 className="page-title">{greeting}, {displayName} 👋</h1>
-                    <div className="page-sub">
+                    <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', marginTop: 4 }}>
+                        Here is how <span style={{ color: 'var(--blue-deep)' }}>{business.name || 'your business'}</span> performed yesterday.
+                    </div>
+                    <div className="choice-sub" style={{ marginTop: 4 }}>
                         {new Date().toLocaleDateString('en-UG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                     </div>
                 </div>
