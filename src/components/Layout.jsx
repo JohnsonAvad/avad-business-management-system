@@ -60,6 +60,9 @@ export default function Layout() {
               <Icon name="menu" size={20} />
             </button>
             <div className="topbar-title">Welcome, {business.ownerName || user?.name}</div>
+            <button className="btn btn-outline" style={{ padding: '6px 14px', fontSize: 13, marginLeft: 'auto' }} onClick={logout}>
+              Log Out
+            </button>
           </div>
           <div className="topbar-right">
             <div className="search"><Icon name="search" size={16} /><input placeholder="Search…" /></div>

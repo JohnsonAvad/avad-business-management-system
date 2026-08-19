@@ -85,6 +85,7 @@ export function AuthProvider({ children }) {
 
   function logout() {
     localStorage.removeItem('avad_session');
+    localStorage.removeItem('avad_business_id');
     setUser(null);
     if (cloudReady) supabase.auth.signOut().catch(() => { });
   }
