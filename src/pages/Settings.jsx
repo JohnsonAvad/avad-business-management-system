@@ -91,11 +91,20 @@ export default function Settings() {
 
       <form className="panel" style={{ maxWidth: 620, marginBottom: 18 }} onSubmit={save}>
         <div className="panel-title">Business Profile (printed on documents)</div>
-        <div className="form-group">
-          <label>Business name</label>
-          <input className="input" value={business.name || ''} placeholder="e.g. AVAD Traders"
-            onChange={e => setBusiness({ ...business, name: e.target.value })} />
+               <div className="form-group">
+          <label>Your name (used in greetings)</label>
+          <input className="input" value={business.ownerName || ''} placeholder="e.g. Johnson Byaruhanga"
+            onChange={e => setBusiness({ ...business, ownerName: e.target.value })} />
         </div>
+        <div className="form-group">
+          <label>Business type</label>
+          <select className="input" value={business.type || 'Product'} onChange={e => setBusiness({ ...business, type: e.target.value })}>
+            <option value="Product">Products (shop / retail)</option>
+            <option value="Service">Services (salon, garage, consulting…)</option>
+            <option value="Both">Both products & services</option>
+          </select>
+        </div>
+         
         <div className="form-group">
           <label>Phone number</label>
           <input className="input" value={business.phone || ''} placeholder="e.g. 0772 000 000"

@@ -7,7 +7,7 @@ export default function Login() {
   const { hasOwner, login, setupOwner } = useAuth();
   const nav = useNavigate();
   const [mode] = useState(hasOwner ? 'login' : 'setup');
-  const [form, setForm] = useState({ businessName: '', phone: '', pin: '', pin2: '' });
+  const [form, setForm] = useState({ ownerName: '', businessName: '', phone: '', pin: '', pin2: '' });
   const [error, setError] = useState('');
   const set = k => e => setForm({ ...form, [k]: e.target.value });
 
@@ -15,11 +15,12 @@ export default function Login() {
     e.preventDefault();
     setError('');
     if (mode === 'setup') {
-      if (!form.businessName.trim()) return setError('Please enter your business name.');
+      if (!form.ownerName.trim()) return setError('Please enter your full name.');
+      if (!form.businessName.trim()) return setError('Please enter the business name.');
       if (form.phone.replace(/\D/g, '').length < 10) return setError('Please enter a valid phone number (10 digits).');
       if (!/^\d{4}$/.test(form.pin)) return setError('PIN must be exactly 4 digits.');
       if (form.pin !== form.pin2) return setError('PINs do not match.');
-      setupOwner({ businessName: form.businessName.trim(), phone: form.phone.trim(), pin: form.pin });
+      setupOwner({ ownerName: form.ownerName.trim(), businessName: form.businessName.trim(), phone: form.phone.trim(), pin: form.pin });
       nav('/');
     } else {
       if (!login(form.phone.trim(), form.pin)) setError('Phone number or PIN is not correct. Please try again.');
@@ -38,13 +39,16 @@ export default function Login() {
 
         {mode === 'setup' && (
           <>
+            <label className="label">Your full name</label>
+            <input className="input" value={form.ownerName} onChange={set('ownerName')} placeholder="e.g. Johnson Byaruhanga" />
             <label className="label">Business name</label>
             <input className="input" value={form.businessName} onChange={set('businessName')} placeholder="e.g. AVAD Traders" />
           </>
         )}
 
         <label className="label">Phone number</label>
-        <input className="input" inputMode="numeric" value={form.phone} onChange={e => setForm({ ...form, phone: cleanPhoneInput(e.target.value) })} placeholder="e.g. 0772 000 000" />
+        <input className="input" inputMode="numeric" value={form.phone}
+          onChange={e => setForm({ ...form, phone: cleanPhoneInput(e.target.value) })} placeholder="e.g. 0772 000 000" />
 
         <label className="label">PIN (4 digits)</label>
         <input className="input" type="password" inputMode="numeric" maxLength={4} value={form.pin} onChange={set('pin')} placeholder="••••" />

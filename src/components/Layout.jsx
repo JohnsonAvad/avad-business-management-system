@@ -59,7 +59,7 @@ export default function Layout() {
             <button className="icon-btn menu-btn" title="Menu" onClick={() => setMenuOpen(true)}>
               <Icon name="menu" size={20} />
             </button>
-            <div className="topbar-title">Welcome, {user?.name}</div>
+            <div className="topbar-title">Welcome, {business.ownerName || user?.name}</div>
           </div>
           <div className="topbar-right">
             <div className="search"><Icon name="search" size={16} /><input placeholder="Search…" /></div>
