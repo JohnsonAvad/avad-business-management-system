@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -32,8 +32,21 @@ export default function NewPurchase() {
     p.active !== false && p.name.toLowerCase().includes(prodSearch.toLowerCase())
   );
 
-  function pickSupplier(id) { setError(''); setSupplierId(id); setMethod('Cash'); setStep(2); }
+    useEffect(() => {
+    const raw = sessionStorage.getItem('avad_prefill');
+    if (raw) {
+      try {
+        const items = JSON.parse(raw);
+        if (Array.isArray(items) && items.length) {
+          setCart(items.map(i => ({ productId: i.productId, name: i.name, cost: String(i.cost || 0), qty: String(i.qty || 1) })));
+        }
+      } catch { }
+      sessionStorage.removeItem('avad_prefill');
+    }
+  }, []);
 
+  function pickSupplier(id) { setError(''); setSupplierId(id); setMethod('Cash'); setStep(2); }
+  
   function addToCart(p) {
     setError('');
     setCart(prev => {

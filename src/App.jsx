@@ -5,6 +5,7 @@ import { DataProvider } from './context/DataContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Today from './pages/Today';
 import Customers from './pages/Customers';
 import Sales from './pages/Sales';
 import NewSale from './pages/NewSale';
@@ -43,7 +44,8 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route element={<Protected />}>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={<Today />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/customers" element={<Customers />} />
               <Route path="/sales" element={<Sales />} />
               <Route path="/sales/new" element={<NewSale />} />

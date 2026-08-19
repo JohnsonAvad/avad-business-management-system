@@ -5,7 +5,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import Icon from './Icon';
 
 const menu = [
-  { to: '/', icon: 'home', label: 'Home' },
+  { to: '/', icon: 'home', label: 'Today' },
   { to: '/analytics', icon: 'reports', label: 'Analytics' },
   { to: '/sales', icon: 'sales', label: 'Sales' },
   { to: '/customers', icon: 'customers', label: 'Customers' },

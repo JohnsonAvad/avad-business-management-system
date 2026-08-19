@@ -122,6 +122,7 @@ export function DataProvider({ children }) {
     });
   }
   function setProductActive(productId, active) { setData(prev => ({ ...prev, products: prev.products.map(p => p.id === productId ? { ...p, active } : p) })); }
+  function updateProduct(id, patch) { setData(prev => ({ ...prev, products: prev.products.map(p => p.id === id ? { ...p, ...patch } : p) })); }
   function adjustStock({ productId, change, reason }) {
     setData(prev => {
       const prod = prev.products.find(p => p.id === productId);
@@ -278,7 +279,7 @@ export function DataProvider({ children }) {
 
   return (
     <DataContext.Provider value={{
-      ...data, addCustomer, addSupplier, addSupplierPayment, addProduct, setProductActive, adjustStock,
+      ...data, addCustomer, addSupplier, addSupplierPayment, addProduct, setProductActive, updateProduct, adjustStock,
       addPurchase, addExpense, addSale, addPayment, updateSale, recordSalePayment,
       addQuotation, updateQuotation, convertQuotation, addDeliveryNote, updateDeliveryNote,
       addAccount, addJournal, addDeal, updateDeal, addFollowup, updateFollowup, addFeedback,
