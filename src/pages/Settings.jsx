@@ -91,10 +91,15 @@ export default function Settings() {
 
       <form className="panel" style={{ maxWidth: 620, marginBottom: 18 }} onSubmit={save}>
         <div className="panel-title">Business Profile (printed on documents)</div>
-               <div className="form-group">
+        <div className="form-group">
           <label>Your name (used in greetings)</label>
           <input className="input" value={business.ownerName || ''} placeholder="e.g. Johnson Byaruhanga"
             onChange={e => setBusiness({ ...business, ownerName: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label>Business name</label>
+          <input className="input" value={business.name || ''} placeholder="e.g. AVAD Traders"
+            onChange={e => setBusiness({ ...business, name: e.target.value })} />
         </div>
         <div className="form-group">
           <label>Business type</label>
@@ -104,7 +109,7 @@ export default function Settings() {
             <option value="Both">Both products & services</option>
           </select>
         </div>
-         
+
         <div className="form-group">
           <label>Phone number</label>
           <input className="input" value={business.phone || ''} placeholder="e.g. 0772 000 000"
@@ -120,13 +125,13 @@ export default function Settings() {
           <input className="input" value={business.footer || ''} placeholder="e.g. Thank you for your business!"
             onChange={e => setBusiness({ ...business, footer: e.target.value })} />
         </div>
-          <div className="form-group">
+        <div className="form-group">
           <label>Warranty / guarantee note (printed on invoices)</label>
           <input className="input" value={business.warranty || ''} placeholder="e.g. Goods are warranted for 7 days with this receipt."
             onChange={e => setBusiness({ ...business, warranty: e.target.value })} />
         </div>
         <div className="form-group">
-          <label>Logo</label>       
+          <label>Logo</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {business.logo ? (
               <img src={business.logo} alt="logo"
@@ -143,7 +148,7 @@ export default function Settings() {
             </button>
           )}
         </div>
-                <div className="form-group">
+        <div className="form-group">
           <label>Owner signature (printed on receipts)</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {business.ownerSignature ? (
