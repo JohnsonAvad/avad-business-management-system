@@ -2,16 +2,17 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { cleanPhoneInput } from '../utils/helpers';
+import { cloudReady } from '../services/cloud';
 
 export default function Login() {
-  const { hasOwner, login, setupOwner } = useAuth();
+  const { hasOwner, login, setupOwner, busy } = useAuth();
   const nav = useNavigate();
   const [mode] = useState(hasOwner ? 'login' : 'setup');
   const [form, setForm] = useState({ ownerName: '', businessName: '', phone: '', pin: '', pin2: '' });
   const [error, setError] = useState('');
   const set = k => e => setForm({ ...form, [k]: e.target.value });
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     setError('');
     if (mode === 'setup') {
@@ -20,10 +21,11 @@ export default function Login() {
       if (form.phone.replace(/\D/g, '').length < 10) return setError('Please enter a valid phone number (10 digits).');
       if (!/^\d{4}$/.test(form.pin)) return setError('PIN must be exactly 4 digits.');
       if (form.pin !== form.pin2) return setError('PINs do not match.');
-      setupOwner({ ownerName: form.ownerName.trim(), businessName: form.businessName.trim(), phone: form.phone.trim(), pin: form.pin });
+      await setupOwner({ ownerName: form.ownerName.trim(), businessName: form.businessName.trim(), phone: form.phone.trim(), pin: form.pin });
       nav('/');
     } else {
-      if (!login(form.phone.trim(), form.pin)) setError('Phone number or PIN is not correct. Please try again.');
+      const ok = await login(form.phone.trim(), form.pin);
+      if (!ok) setError('Phone number or PIN is not correct. Please try again.');
       else nav('/');
     }
   }
@@ -62,10 +64,10 @@ export default function Login() {
 
         {error && <div className="alert red">{error}</div>}
 
-        <button className="btn btn-green btn-lg" style={{ width: '100%', marginTop: 16 }} type="submit">
-          {mode === 'setup' ? 'Create my account' : 'Sign in'}
+        <button className="btn btn-green btn-lg" style={{ width: '100%', marginTop: 16 }} type="submit" disabled={busy}>
+          {busy ? 'Please wait…' : (mode === 'setup' ? 'Create my account' : 'Sign in')}
         </button>
-        <div className="hint">Think Different!!! — AVAD Systems</div>
+        <div className="hint">{cloudReady ? '☁️ AVAD Cloud connected — Think Different!!!' : '📴 Local mode — Think Different!!!'}</div>
       </form>
     </div>
   );

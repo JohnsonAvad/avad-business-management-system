@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { cloudReady, cloudPull, cloudPush } from '../services/cloud';
 
 const DataContext = createContext(null);
 const KEY = 'avad_data_v2';
@@ -99,8 +100,33 @@ export function DataProvider({ children }) {
     if (!saved) { localStorage.setItem(KEY, JSON.stringify(seeded)); return seeded; }
     return { ...seeded, ...saved };
   });
-  useEffect(() => { localStorage.setItem(KEY, JSON.stringify(data)); }, [data]);
+  const pushTimer = useRef(null);
+  const pulledRef = useRef(!cloudReady);
 
+  useEffect(() => {
+    localStorage.setItem(KEY, JSON.stringify(data));
+    if (!cloudReady || !pulledRef.current) return;
+    const bid = localStorage.getItem('avad_business_id');
+    if (!bid) return;
+    clearTimeout(pushTimer.current);
+    pushTimer.current = setTimeout(() => {
+      cloudPush(bid, { data, business: read('avad_business', {}) }).catch(() => { });
+    }, 1200);
+  }, [data]);
+
+  useEffect(() => {
+    const doPull = () => {
+      const bid = localStorage.getItem('avad_business_id');
+      if (!cloudReady || !bid) return;
+      cloudPull(bid).then(res => {
+        if (res?.business) localStorage.setItem('avad_business', JSON.stringify(res.business));
+        if (res?.data) setData(prev => ({ ...seed(), ...res.data }));
+      }).catch(() => { }).finally(() => { pulledRef.current = true; });
+    };
+    doPull();
+    window.addEventListener('avad-cloud-login', doPull);
+    return () => window.removeEventListener('avad-cloud-login', doPull);
+  }, []);
   function addCustomer(c) { setData(prev => ({ ...prev, customers: [...prev.customers, { ...c, id: Date.now(), balance: 0 }] })); }
   function addSupplier(s) { setData(prev => ({ ...prev, suppliers: [...prev.suppliers, { ...s, id: Date.now(), balance: 0 }] })); }
   function addSupplierPayment({ supplierId, amount, method }) {
